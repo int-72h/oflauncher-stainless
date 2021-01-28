@@ -19,6 +19,7 @@ extern "C" {
 #include <utility>
 #include <iostream>
 #include <memory>
+#include <vector>
 
 namespace fs = std::filesystem;
 
@@ -32,9 +33,11 @@ public:
 	void setFolderName(std::string name);
 	void fetchDatabase();
 	void downloadFile(const std::string &path, const fs::path& to, const bool &decompress = false);
+	void downloadFiles(std::vector<std::string> paths, std::vector<fs::path> to, const bool &decompress);
 
 
 private:
+	static void* execfile(void *context, const std::string path, const fs::path to, const bool &decompress);
 	static inline void convertURL(std::string &s);
 	static size_t memCallback(void *data, size_t size, size_t nmemb, void *userp);
     std::string p_serverURL;

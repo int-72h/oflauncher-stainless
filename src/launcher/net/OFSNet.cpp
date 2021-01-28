@@ -5,7 +5,7 @@
 #include "OFSNet.h"
 #include <fstream>
 #include <utility>
-
+#include <vector>
 OFSNet::OFSNet(std::string serverURL, std::string gameFolderName) {
 	convertURL(serverURL);
 	p_serverURL = std::move(serverURL);
@@ -83,6 +83,25 @@ void OFSNet::downloadFile(const std::string &path, const fs::path& to, const boo
 	std::fclose(file);
 	std::free(membuf.memfile);
 
+}
+
+void OFSNet::downloadFiles(std::vector<std::string> paths, std::vector<fs::path> to, const bool &decompress) {
+	size_t num_p = paths.size();
+	if(num_p != to.size()){
+		throw std::runtime_error("Where is this going? Amount of downloads / locations mismatch!");
+	}
+	pthread_t thread_id[num_p];
+	size_t i;
+	for(i=0; i<num_p; i++){
+		int retcode = pthread_create(&thread_id[i],NULL,OFSNet::execfile,paths[i], to[i],decompress); 
+		if(0 != retcode){
+			fprintf(stderr, "Downloading thread %lu failed to rub errno %d\n",i, retcode);
+		}
+	}
+	for(i = 0; i< num_p; i++) {
+		pthread_join(thread_id[i], NULL);
+		fprintf(stderr, "Thread %lu terminated\n", i);
+    }
 }
 
 void OFSNet::convertURL(std::string &URL) {
